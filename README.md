@@ -40,17 +40,20 @@ DocDock is a modern, full‑stack hospital management web application built with
    git clone https://github.com/SudheerMM6/DocDock.git
    cd DocDock
 
-2. Configure environment variables
-Create a config.env file in the backend root directory and add the following
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
+2. 2. **Configure environment variables**  
+   Create a `config.env` file in the backend root directory and add:
+   ```env
+   PORT=5000
+   MONGO_URI=your_mongodb_connection_string
+   JWT_SECRET=your_secret_key
+   
+3. 3. **Install dependencies**
+   ```bash
+   npm install
 
-3. Install dependencies
-npm install
-
-4. Run the application
-npm run dev
+4. 4. **Run the application**
+   ```bash
+   npm run dev
 
 5. Access the app Open http://localhost:3000 in your browser.
 
