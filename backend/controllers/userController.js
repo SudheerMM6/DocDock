@@ -1,3 +1,4 @@
+import fs from 'fs'
 import validator from 'validator'
 import bcrypt from 'bcrypt'
 import userModel from '../models/userModel.js'
@@ -94,7 +95,6 @@ const getProfile = async (req,res)=>{
 //api to update profile
 const updateProfile = async (req,res)=>{
     try {
-        
         const {userId,name,phone,address,dob,gender} = req.body
         const imageFile = req.file
 
@@ -105,12 +105,16 @@ const updateProfile = async (req,res)=>{
         await userModel.findByIdAndUpdate(userId,{name,phone,address:JSON.parse(address),dob,gender})
 
         if (imageFile) {
-            //uploading image to cloudinary storage
+            // Upload to Cloudinary
             const imageUpload = await cloudinary.uploader.upload(imageFile.path,{resource_type:'image'})
             const imageURL = imageUpload.secure_url
-
             await userModel.findByIdAndUpdate(userId,{image:imageURL})
 
+            // --- FIX START: DELETE LOCAL FILE AFTER UPLOAD ---
+            fs.unlink(imageFile.path, (err) => {
+                if (err) console.error("Error deleting local file:", err);
+            });
+            // --- FIX END ---
         }
 
         res.json({success:true,message:"Profile Updated"})
