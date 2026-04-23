@@ -8,6 +8,18 @@ DocDock is a full-stack hospital management project with three apps:
 
 This branch is prepared for stable recruiter demos and deployment.
 
+## What I Changed
+
+- Hardened backend startup for deployment reliability.
+- Added fail-fast environment validation for required backend variables.
+- Added `GET /health` endpoint for deployment and uptime verification.
+- Switched frontend and admin API base URL usage to `VITE_API_URL`.
+- Added `.env.example` templates for backend, frontend, and admin.
+- Added stricter CORS configuration through `CORS_ORIGIN`.
+- Improved admin login error handling for clearer user feedback.
+- Pinned Node runtime to `20.x` via `.nvmrc` and package `engines`.
+- Rewrote setup and deployment documentation in English for recruiters.
+
 ## Stack
 
 - Backend: Node.js, Express, MongoDB, Mongoose
@@ -46,6 +58,13 @@ cd ../admin && npm install
 ```bash
 cd backend
 npm run server
+```
+
+For a production-style backend run:
+
+```bash
+cd backend
+npm start
 ```
 
 ```bash
@@ -118,6 +137,7 @@ Deployment approach used:
   - `PORT=10000` (or leave Render default)
   - all variables from `backend/.env.example`
   - `CORS_ORIGIN=https://<frontend-domain>,https://<admin-domain>`
+    - strict format: comma-separated origins, no trailing slash
 - Deploy and confirm:
   - `https://<render-backend-domain>/health` returns `{ "status": "ok" }`
 
@@ -179,6 +199,11 @@ Demo flow:
 - Backend intentionally fails fast when required env vars are missing.
 - `GET /health` is available for uptime checks and smoke tests.
 - `npm test` currently reports a clear no-op message (no automated test suite yet).
+
+## Credits / Attribution
+
+- Project owner and maintainer: repository author.
+- Current repository: [SudheerMM6/DocDock](https://github.com/SudheerMM6/DocDock).
 
 
 

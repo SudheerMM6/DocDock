@@ -1,5 +1,6 @@
 import { createContext } from "react";
 
+/* eslint-disable react-refresh/only-export-components */
 export const AppContext = createContext()
 
 const AppContextProvider = (props)=>{

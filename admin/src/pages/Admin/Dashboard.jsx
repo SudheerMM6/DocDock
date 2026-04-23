@@ -13,6 +13,7 @@ const Dashboard = () => {
     if (aToken) {
       getDashData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[aToken])
 
   return dashData && (

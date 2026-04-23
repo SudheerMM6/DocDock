@@ -116,10 +116,12 @@ const bookAppointment = async()=>{
 
 useEffect(()=>{
   fetchDocInfo()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 },[doctors,docId])
 
 useEffect(()=>{
   getAvailableSlots()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 },[docInfo])
 
 useEffect(()=>{

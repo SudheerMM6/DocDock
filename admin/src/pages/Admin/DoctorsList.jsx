@@ -9,6 +9,7 @@ const DoctorsList = () => {
       if (aToken) {
         getAllDoctors()
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     },[aToken])
 
   return (

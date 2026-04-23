@@ -2,12 +2,15 @@ import { createContext, useEffect, useState } from "react";
 import axios from 'axios'
 import {toast} from 'react-toastify'
 
+/* eslint-disable react-refresh/only-export-components */
 export const AppContext = createContext()
 
 const AppContextprovider = (props)=>{
 
     const currencySymbol= '$'
-    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+    const backendUrl =
+      import.meta.env.VITE_API_URL ||
+      (import.meta.env.DEV ? "http://localhost:4000" : "")
     const [doctors,setDoctors] = useState([])
     const [token,setToken] = useState(localStorage.getItem('token')?localStorage.getItem('token'):false)
     const [userData,setUserData] = useState(false) 
@@ -59,6 +62,7 @@ useEffect(()=>{
   
     getDoctorsData()
 
+// eslint-disable-next-line react-hooks/exhaustive-deps
 },[])
 
 useEffect(()=>{
@@ -67,6 +71,7 @@ useEffect(()=>{
     }else{
         setUserData(false)
     }
+// eslint-disable-next-line react-hooks/exhaustive-deps
 },[token])
 
 return(

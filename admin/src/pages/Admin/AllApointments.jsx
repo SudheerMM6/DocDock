@@ -14,6 +14,7 @@ const AllApointments = () => {
     if (aToken) {
       getAllAppointments()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[aToken])
 
   return (

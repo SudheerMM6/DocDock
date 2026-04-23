@@ -3,11 +3,14 @@ import { createContext } from "react";
 import axios from 'axios'
 import {toast} from 'react-toastify'
 
+/* eslint-disable react-refresh/only-export-components */
 export const DoctorContext = createContext()
 
 const DoctorContextProvider = (props)=>{
 
-    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+    const backendUrl =
+      import.meta.env.VITE_API_URL ||
+      (import.meta.env.DEV ? "http://localhost:4000" : "")
     const [dToken,setDToken] = useState(localStorage.getItem('dToken') ? localStorage.getItem('dToken'): '')
 
     const [appointments,setAppointments] = useState([])
@@ -70,7 +73,7 @@ const cancelAppointment = async(appointmentId)=>{
 
 }
 
-const getDashData = async(req,res)=>{
+const getDashData = async()=>{
     try {
 
         const {data} = await axios.get(backendUrl+'/api/doctor/dashboard',{headers:{dToken}})

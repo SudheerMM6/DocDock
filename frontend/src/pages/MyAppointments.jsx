@@ -111,6 +111,7 @@ useEffect(()=>{
   if (token) {
     getUserAppointments()
   }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 },[token])
 
   return (

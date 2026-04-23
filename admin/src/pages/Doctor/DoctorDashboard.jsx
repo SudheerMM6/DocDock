@@ -7,13 +7,14 @@ import { AppContext } from '../../context/AppContext'
 
 const DoctorDashboard = () => {
 
-const {dToken,dashData,setDashData,getDashData,completeAppointment,cancelAppointment} = useContext(DoctorContext)
+const {dToken,dashData,getDashData,completeAppointment,cancelAppointment} = useContext(DoctorContext)
 const {currency ,slotDateFormat} = useContext(AppContext)
 
 useEffect(()=>{
   if (dToken) {
     getDashData()
   }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 },[dToken])
 
   return dashData && (

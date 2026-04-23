@@ -15,6 +15,7 @@ const DoctorAppointments = () => {
     if (dToken) {
       getAppointments()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[dToken])
 
   return (

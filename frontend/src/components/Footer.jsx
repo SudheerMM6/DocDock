@@ -10,7 +10,7 @@ const Footer = () => {
             {/* ---------left------------ */}
             <div>
                 <img className='mb-5 w-40' src={assets.logo} alt="" />
-                <p className='w-full md:w-2/3 text-gray-600 leading-6'>Prescripto is our college project using which you can book your appointments with 50+ trusted doctor and take care of yourself with family. Team id 104. Rutul Prajapati.</p>
+                <p className='w-full md:w-2/3 text-gray-600 leading-6'>DocDock helps patients and families book appointments with trusted doctors quickly and easily.</p>
             </div>
 
             {/* ---------center------------ */}
@@ -26,10 +26,9 @@ const Footer = () => {
 
             {/* ---------right------------ */}
             <div>
-                <p className='text-xl font-medium mb-5'>GET IN TOUCH</p>
+                <p className='text-xl font-medium mb-5'>CONTACT</p>
                 <ul className='flex flex-col gap-2 text-gray-600 '>
-                    <li>+91-6354297008</li>
-                    <li>rutulp79@gmail.com</li>
+                    <li>Use the Contact page for inquiries.</li>
                 </ul>
             </div>
 
@@ -39,7 +38,7 @@ const Footer = () => {
             {/* ---------Copyright------------- */}
         <div>
             <hr />
-            <p className='py-5 text-sm text-center'>Copyright 2025@ Prescripto - All Rights Reserved</p>
+            <p className='py-5 text-sm text-center'>Copyright 2025 DocDock - All Rights Reserved</p>
         </div>
 
     </div>

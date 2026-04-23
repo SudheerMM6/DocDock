@@ -19,8 +19,8 @@ const Contact = () => {
         <div className='flex flex-col justify-center items-start gap-6'>
           <p className='font-semibold text-lg text-gray-600 '>OUR OFFICE</p>
           <p className='text-gray-500 '>UVPCE, GANPAT UNIVERSITY,<br /> KHERVA, MEHSANA</p>
-          <p className='text-gray-500 '>Telephone:-(415)-555-1746 <br /> Email:-ganpanuniversity@gmail.com</p>
-          <p className='font-semibold text-lg text-gray-600 '>CAREERS AT PRESCRIPTO</p>
+          <p className='text-gray-500 '>For support, use the in-app booking flow and dashboard tools.</p>
+          <p className='font-semibold text-lg text-gray-600 '>CAREERS AT DOCKDOCK</p>
           <p className='text-gray-500 '>Learn more about our teams and job openings.</p>
           <button className='border border-black px-8 py-4 text-sm hover:bg-black hover:text-white transition-all duration-500'>Explore Jobs</button>
         </div>
