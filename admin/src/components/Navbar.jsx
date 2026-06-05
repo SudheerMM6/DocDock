@@ -3,6 +3,7 @@ import {assets} from '../assets/assets'
 import { AdminContext } from '../context/AdminContext'
 import {useNavigate} from 'react-router-dom'
 import { DoctorContext } from '../context/DoctorContext'
+import { Button } from './ui/Button'
 
 const Navbar = () => {
 
@@ -20,12 +21,16 @@ const Navbar = () => {
     }
 
   return (
-    <div className='flex justify-between items-center px-4 sm:px-10 py-3 border-b bg-white '>
-        <div className='flex items-center gap-2 text-xs'>
+    <div className='flex justify-between items-center px-4 sm:px-10 py-3 border-b border-[var(--border)] bg-[var(--color-canvas-white)]'>
+        <div className='flex items-center gap-3 text-xs'>
             <img className='w-36 sm:w-40 cursor-pointer' src={assets.admin_logo} />
-            <p className='border px-2.5 py-0.5 rounded-full border-gray-500 text-gray-500'>{aToken ? 'Admin' : 'Doctor'}</p>
+            <span className='px-3 py-1 rounded-nav border border-[var(--border)] text-[var(--ink-secondary)] font-mono uppercase tracking-wider text-xs'>
+              {aToken ? 'Admin' : 'Doctor'}
+            </span>
         </div>
-        <button onClick={logout} className='bg-primary text-white text-sm px-10 py-2 rounded-full'>Logout</button>
+        <Button onClick={logout} variant="outline" size="sm">
+          Logout
+        </Button>
     </div>
   )
 }

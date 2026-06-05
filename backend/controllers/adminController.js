@@ -58,7 +58,7 @@ const addDoctor = async(req,res)=>{
 
     } catch (error) {
         
-        console.log(error);
+        console.error(error.message);
         res.json({success:false,message:error.message})
 
     }
@@ -72,7 +72,7 @@ const loginAdmin = async(req,res)=>{
         const {email,password} = req.body
         if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
             
-            const token = jwt.sign(email+password,process.env.JWT_SECRET)
+            const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '1d' })
             res.json({success:true,token})
 
         }else{
@@ -81,7 +81,7 @@ const loginAdmin = async(req,res)=>{
         
     } catch (error) {
         
-        console.log(error);
+        console.error(error.message);
         res.json({success:false,message:error.message})
 
     }
@@ -96,7 +96,7 @@ const allDoctors = async (req,res)=>{
         res.json({success:true,doctors})
 
     } catch (error) {
-        console.log(error);
+        console.error(error.message);
         res.json({success:false,message:error.message})
     }
 
@@ -111,7 +111,7 @@ const appointmentsAdmin = async(req,res)=>{
         res.json({success:true,appointments})
 
     } catch (error) {
-        console.log(error);
+        console.error(error.message);
         res.json({success:false,message:error.message})
     }
 }
@@ -140,7 +140,7 @@ const appointmentCancel = async(req,res)=>{
         res.json({success:true,message:'Appointment cancelled'})
 
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 }
@@ -165,7 +165,7 @@ const adminDashboard = async(req,res)=>{
         res.json({success:true,dashData})
 
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 }

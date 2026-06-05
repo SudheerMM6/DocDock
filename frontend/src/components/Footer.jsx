@@ -1,48 +1,66 @@
 import React from 'react'
 import { assets } from '../assets/assets'
+import { useNavigate } from 'react-router-dom'
+import { Container } from './layout/Container'
+import { Divider } from './layout/Divider'
 
 const Footer = () => {
+  const navigate = useNavigate()
+  const linkClass = "text-[var(--ink-secondary)] hover:text-[var(--ink)] transition-colors cursor-pointer"
+
   return (
-    <div className='md:mx-10'>
+    <footer className="mt-12">
+      <Container>
+        <Divider />
 
-        <div className='flex flex-col sm:grid grid-cols-[3fr_1fr_1fr] gap-14 my-10 mt-40 text-sm'>
+        <div className="py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="sm:col-span-2 lg:col-span-1">
+            <img
+              className="mb-4 w-40 cursor-pointer"
+              onClick={() => navigate('/')}
+              src={assets.logo}
+              alt="DocDock"
+            />
+            <p className="text-sm text-[var(--ink-secondary)] leading-relaxed max-w-xs">
+              Book appointments, manage profile details, and track visits from one account.
+            </p>
+          </div>
 
-            {/* ---------left------------ */}
-            <div>
-                <img className='mb-5 w-40' src={assets.logo} alt="" />
-                <p className='w-full md:w-2/3 text-gray-600 leading-6'>Prescripto is our college project using which you can book your appointments with 50+ trusted doctor and take care of yourself with family. Team id 104. Rutul Prajapati.</p>
-            </div>
+          <div>
+            <h4 className="font-medium text-[var(--ink)] mb-4 text-sm">Pages</h4>
+            <ul className="flex flex-col gap-3 text-sm">
+              <li className={linkClass} onClick={() => navigate('/about')}>About</li>
+              <li className={linkClass} onClick={() => navigate('/contact')}>Contact</li>
+            </ul>
+          </div>
 
-            {/* ---------center------------ */}
-            <div>
-                <p className='text-xl font-medium mb-5'>COMPANY</p>
-                <ul className='flex flex-col gap-2 text-gray-600 '>
-                    <li>Home</li>
-                    <li>About Us</li>
-                    <li>Contact Us</li>
-                    <li>Privacy Policy</li>
-                </ul>
-            </div>
+          <div>
+            <h4 className="font-medium text-[var(--ink)] mb-4 text-sm">Patients</h4>
+            <ul className="flex flex-col gap-3 text-sm">
+              <li className={linkClass} onClick={() => navigate('/doctors')}>Find doctors</li>
+              <li className={linkClass} onClick={() => navigate('/login')}>Book appointment</li>
+              <li className={linkClass} onClick={() => navigate('/my-appointments')}>My appointments</li>
+              <li className={linkClass} onClick={() => navigate('/my-profile')}>My profile</li>
+            </ul>
+          </div>
 
-            {/* ---------right------------ */}
-            <div>
-                <p className='text-xl font-medium mb-5'>GET IN TOUCH</p>
-                <ul className='flex flex-col gap-2 text-gray-600 '>
-                    <li>+91-6354297008</li>
-                    <li>rutulp79@gmail.com</li>
-                </ul>
-            </div>
-
+          <div>
+            <h4 className="font-medium text-[var(--ink)] mb-4 text-sm">Project</h4>
+            <ul className="flex flex-col gap-3 text-sm">
+              <li className={linkClass} onClick={() => navigate('/contact')}>Contact page</li>
+              <li className="text-[var(--ink-secondary)]">Built with React, Express, and MongoDB</li>
+            </ul>
+          </div>
         </div>
 
-
-            {/* ---------Copyright------------- */}
-        <div>
-            <hr />
-            <p className='py-5 text-sm text-center'>Copyright 2025@ Prescripto - All Rights Reserved</p>
+        <Divider />
+        <div className="py-6">
+          <p className="text-sm text-[var(--ink-secondary)] text-center">
+            &copy; 2026 DocDock.
+          </p>
         </div>
-
-    </div>
+      </Container>
+    </footer>
   )
 }
 

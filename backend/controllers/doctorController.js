@@ -15,7 +15,7 @@ const changeAvailability = async(req,res)=>{
         res.json({success:true,message:'Availability Changed'})
         
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 
@@ -27,7 +27,7 @@ const doctorList = async (req,res)=>{
 
         res.json({success:true,doctors})
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 }
@@ -55,7 +55,7 @@ const loginDoctor = async(req,res)=>{
         }
         
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 
@@ -72,7 +72,7 @@ const appointmentsDoctor = async(req,res)=>{
         res.json({success:true,appointments})
         
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 
@@ -97,7 +97,7 @@ const appointmentComplete = async(req,res)=>{
 
         
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 }
@@ -122,7 +122,7 @@ const appointmentCancel = async(req,res)=>{
 
         
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 }
@@ -162,7 +162,7 @@ const doctorDashboard = async(req,res)=>{
         res.json({success:true,dashData})
 
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 
@@ -178,7 +178,7 @@ const doctorProfile = async(req,res)=>{
         
         
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 }
@@ -194,7 +194,7 @@ const updateDoctorProfile = async(req,res)=>{
         res.json({success:true,message:"Profile Updated Successfully"})
         
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 }

@@ -2,6 +2,7 @@ import { createContext, useState } from "react";
 import axios from 'axios'
 import {toast} from 'react-toastify'
 
+/* eslint-disable react-refresh/only-export-components */
 export const AdminContext = createContext()
 
 const AdminContextProvider = (props)=>{
@@ -11,7 +12,9 @@ const [doctors,setDoctors] = useState([])
 const [appointments,setAppointments] = useState([])
 const [dashData,setDashData]= useState(false)
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL
+const backendUrl =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? "http://localhost:4000" : "")
 
 const getAllDoctors = async()=>{
     try {
@@ -19,8 +22,6 @@ const getAllDoctors = async()=>{
         const {data} = await axios.post(backendUrl + '/api/admin/all-doctors',{},{headers:{aToken}})
         if (data.success) {
             setDoctors(data.doctors)
-            console.log(data.doctors)
-            
         }else{
             toast.error(data.message)
         }

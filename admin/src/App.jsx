@@ -1,6 +1,6 @@
 import React, { useContext } from 'react'
 import Login from './pages/Login'
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css"
 import { AdminContext } from './context/AdminContext';
 import Navbar from './components/Navbar';
@@ -21,7 +21,7 @@ const App = () => {
   const {dToken} = useContext(DoctorContext)
 
   return aToken || dToken ? (
-    <div className='bg-[#F8F9FD]'>
+    <div className='bg-[var(--color-canvas-white)]'>
      <ToastContainer/>
      <Navbar />
      <div className='flex items-start'>

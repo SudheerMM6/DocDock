@@ -1,33 +1,55 @@
 import React from 'react'
 import { assets } from '../assets/assets'
+import { PageHeader } from '../components/layout/PageHeader'
+import { Container } from '../components/layout/Container'
+import { Section } from '../components/layout/Section'
+import { Button } from '../components/ui/button'
 
 const Contact = () => {
   return (
-    <div>
-        
-      <div className='text-center text-2xl pt-10 text-gray-500 '>
-        <p>
-          CONTACT <span className='text-gray-700 font-semibold'>US</span>
-        </p>
-      </div>
+    <div className="min-h-screen bg-[var(--color-canvas-white)]">
+      <PageHeader
+        title="Contact us"
+        subtitle="Project and support information for the appointment workflow"
+      />
 
+      <Section size="sm">
+        <Container>
+          <div className="flex flex-col md:flex-row gap-8 lg:gap-10">
+            <img
+              className="w-full md:w-[360px] md:h-auto object-cover rounded-card border border-[var(--border)]"
+              src={assets.contact_image}
+              alt="Doctor consultation"
+            />
 
-      <div className='my-10 flex flex-col justify-center md:flex-row gap-10 mb-28 text-sm'>
+            <div className="flex-1 flex flex-col justify-center gap-6">
+              <div>
+                <p className="font-mono text-xs text-[var(--ink-secondary)] uppercase tracking-wider mb-2">Support</p>
+                <p className="text-[var(--ink)] text-lg font-medium">Appointment and account help</p>
+                <p className="text-[var(--ink-secondary)]">
+                  Patients can manage bookings from the appointments page after login.
+                </p>
+              </div>
 
-        <img className='w-full md:max-w-[360px]' src={assets.contact_image} alt="" />
-       
-        <div className='flex flex-col justify-center items-start gap-6'>
-          <p className='font-semibold text-lg text-gray-600 '>OUR OFFICE</p>
-          <p className='text-gray-500 '>UVPCE, GANPAT UNIVERSITY,<br /> KHERVA, MEHSANA</p>
-          <p className='text-gray-500 '>Telephone:-(415)-555-1746 <br /> Email:-ganpanuniversity@gmail.com</p>
-          <p className='font-semibold text-lg text-gray-600 '>CAREERS AT PRESCRIPTO</p>
-          <p className='text-gray-500 '>Learn more about our teams and job openings.</p>
-          <button className='border border-black px-8 py-4 text-sm hover:bg-black hover:text-white transition-all duration-500'>Explore Jobs</button>
-        </div>
+              <p className="text-[var(--ink-secondary)] text-sm max-w-xl">
+                This portfolio version does not include a public support inbox. In a production version,
+                this page would connect to email or ticketing.
+              </p>
 
-      </div>
-
-
+              <div className="pt-6 border-t border-[var(--border)]">
+                <p className="font-mono text-xs text-[var(--ink-secondary)] uppercase tracking-wider mb-2">Project</p>
+                <p className="font-semibold text-[var(--ink)] text-lg">DocDock appointment booking</p>
+                <p className="text-[var(--ink-secondary)] mt-2 max-w-sm leading-relaxed">
+                  The source code includes setup and deployment notes for local review.
+                </p>
+                <Button variant="outline" className="mt-4" onClick={() => window.location.href = '/doctors'}>
+                  View doctors
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Container>
+      </Section>
     </div>
   )
 }

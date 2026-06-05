@@ -1,10 +1,11 @@
 import React, { useContext, useState } from 'react'
-import {assets} from '../assets/assets'
 import { AdminContext } from '../context/AdminContext'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { DoctorContext } from '../context/DoctorContext'
-
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
+import { Input } from '../components/ui/Input'
+import { Button } from '../components/ui/Button'
 
 const Login = () => {
 
@@ -44,33 +45,70 @@ const Login = () => {
             }
 
         } catch (error) {
-            
+            toast.error(error.message)
         }
 
     }
 
   return (
-    <form onSubmit={onSubmitHandler} className='min-h-[80vh] flex items-center'>
-        <div className='flex flex-col gap-3 m-auto items-start p-8 min-w-[340px] sm:min-w-96 border rounded-xl text-[#5E5E5E] text-sm shadow-lg'>
-            <p className='text-2xl font-semibold m-auto'>
-                <span className='text-primary'>{state} </span>
-                Login
-            </p>
-            <div className='w-full'>
-                <p>Email</p>
-                <input onChange={(e)=>setEmail(e.target.value)} value={email} className='border border-[#DADADA] rounded w-full p-2 mt-1' type="email" required/>
-            </div>
-            <div className='w-full'>
-                <p>Password</p>
-                <input onChange={(e)=>setPassword(e.target.value)} value={password} className='border border-[#DADADA] rounded w-full p-2 mt-1' type="password" required/>
-            </div>
-            <button className='bg-primary text-white w-full py-2 rounded-md text-base'>Login</button>
-            {
-                state === 'Admin'
-                ? <p>Doctor Login? <span className='text-primary underline cursor-pointer' onClick={()=>setState('Doctor')}>Click here</span></p>
-                : <p>Admin Login? <span className='text-primary underline cursor-pointer' onClick={()=>setState('Admin')}>Click here</span></p>
-            }
-        </div>
+    <form onSubmit={onSubmitHandler} className='min-h-screen bg-[var(--color-canvas-white)] flex items-center justify-center px-4'>
+      <Card className='w-full max-w-md'>
+        <CardHeader className="text-center">
+          <CardTitle className='text-2xl font-bold text-[var(--ink)] tracking-[-0.02em]'>
+            <span className='text-primary'>{state} </span>
+            Login
+          </CardTitle>
+          <p className='text-[var(--ink-secondary)] text-sm mt-1'>
+            Sign in to access your dashboard
+          </p>
+        </CardHeader>
+        <CardContent className='space-y-4'>
+          <div className='space-y-1.5'>
+            <label className='text-sm font-medium text-[var(--ink)]'>Email</label>
+            <Input
+              onChange={(e)=>setEmail(e.target.value)}
+              value={email}
+              type="email"
+              placeholder="Enter your email"
+              required
+            />
+          </div>
+          <div className='space-y-1.5'>
+            <label className='text-sm font-medium text-[var(--ink)]'>Password</label>
+            <Input
+              onChange={(e)=>setPassword(e.target.value)}
+              value={password}
+              type="password"
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+          <Button type='submit' variant="primary" size="lg" className='w-full mt-2'>
+            Login
+          </Button>
+          {
+            state === 'Admin'
+            ? <p className='text-sm text-center text-[var(--ink-secondary)] mt-4'>
+                Doctor Login?{' '}
+                <span
+                  className='text-[var(--ink)] font-medium cursor-pointer hover:underline'
+                  onClick={()=>setState('Doctor')}
+                >
+                  Click here
+                </span>
+              </p>
+            : <p className='text-sm text-center text-[var(--ink-secondary)] mt-4'>
+                Admin Login?{' '}
+                <span
+                  className='text-[var(--ink)] font-medium cursor-pointer hover:underline'
+                  onClick={()=>setState('Admin')}
+                >
+                  Click here
+                </span>
+              </p>
+          }
+        </CardContent>
+      </Card>
     </form>
   )
 }

@@ -7,6 +7,7 @@ import {v2 as cloudinary} from 'cloudinary'
 import doctorModel from '../models/doctorModel.js'
 import appointmentModel from '../models/appointmentModel.js'
 import razorpay from 'razorpay'
+import { isValidRazorpaySignature } from '../utils/razorpaySignature.js'
 
 //api to register
 const registerUser = async (req,res) =>{
@@ -43,7 +44,7 @@ const registerUser = async (req,res) =>{
         res.json({success:true,token})
 
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 }
@@ -69,7 +70,7 @@ const loginUser = async (req,res)=>{
         }
 
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 }
@@ -86,7 +87,7 @@ const getProfile = async (req,res)=>{
         res.json({success:true,userData})
 
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 
@@ -105,22 +106,19 @@ const updateProfile = async (req,res)=>{
         await userModel.findByIdAndUpdate(userId,{name,phone,address:JSON.parse(address),dob,gender})
 
         if (imageFile) {
-            // Upload to Cloudinary
             const imageUpload = await cloudinary.uploader.upload(imageFile.path,{resource_type:'image'})
             const imageURL = imageUpload.secure_url
             await userModel.findByIdAndUpdate(userId,{image:imageURL})
 
-            // --- FIX START: DELETE LOCAL FILE AFTER UPLOAD ---
             fs.unlink(imageFile.path, (err) => {
                 if (err) console.error("Error deleting local file:", err);
             });
-            // --- FIX END ---
         }
 
         res.json({success:true,message:"Profile Updated"})
 
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 }
@@ -132,6 +130,9 @@ const bookAppointment = async (req,res)=>{
         const {userId,docId,slotDate,slotTime} = req.body
 
         const docData = await doctorModel.findById(docId).select('-password')
+        if (!docData) {
+            return res.json({success:false,message:'Doctor not found'})
+        }
 
         if (!docData.available) {
             return res.json({success:false,message:'Doctor not Available'})
@@ -171,14 +172,25 @@ const bookAppointment = async (req,res)=>{
         const newAppointment = new appointmentModel(appointmentData)
         await newAppointment.save()
 
-        //save new slots data in doctors data
-        await doctorModel.findByIdAndUpdate(docId,{slots_booked})
+        const updatedDoctor = await doctorModel.findOneAndUpdate(
+            {
+                _id: docId,
+                [`slots_booked.${slotDate}`]: { $ne: slotTime }
+            },
+            { $push: { [`slots_booked.${slotDate}`]: slotTime } },
+            { new: true }
+        )
+
+        if (!updatedDoctor) {
+            await appointmentModel.findByIdAndDelete(newAppointment._id)
+            return res.json({success:false,message:'Slot not Available'})
+        }
 
 
         res.json({ success:true,  message:'Appointment Booked' })
 
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 }
@@ -194,7 +206,7 @@ const listAppointment = async(req,res)=>{
         res.json({success:true,appointments})
 
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 }
@@ -205,6 +217,9 @@ const cancelAppointment = async(req,res)=>{
         
         const {userId,appointmentId} = req.body
         const appointmentData = await appointmentModel.findById(appointmentId)
+        if (!appointmentData) {
+            return res.json({success:false,message:'Appointment not found'})
+        }
 
         //verify appointment user
         if (appointmentData.userId !== userId ) {
@@ -227,7 +242,7 @@ const cancelAppointment = async(req,res)=>{
         res.json({success:true,message:'Appointment cancelled'})
 
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 }
@@ -249,6 +264,9 @@ const paymentRazorpay = async(req,res)=>{
         if (!appointmentData || appointmentData.cancelled) {
             return res.json({success:false,message:"Appointment cancelled or not found"})
         }
+        if (appointmentData.userId !== req.body.userId) {
+            return res.json({success:false,message:"Unauthorized Action"})
+        }
     
         // creating options for razorpay payment
         const options={
@@ -262,7 +280,7 @@ const paymentRazorpay = async(req,res)=>{
     res.json({success:true,order})
         
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 
@@ -275,8 +293,28 @@ const paymentRazorpay = async(req,res)=>{
 const verifyRazorpay = async(req,res)=>{
     try {
         
-        const {razorpay_order_id} = req.body
+        const {userId, razorpay_order_id, razorpay_payment_id, razorpay_signature} = req.body
+        if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+            return res.json({success:false,message:'Missing payment verification details'})
+        }
+
+        const isPaymentSignatureValid = isValidRazorpaySignature({
+            orderId: razorpay_order_id,
+            paymentId: razorpay_payment_id,
+            signature: razorpay_signature,
+            secret: process.env.KEY_SECRET
+        })
+
+        if (!isPaymentSignatureValid) {
+            return res.json({success:false,message:'Payment verification failed'})
+        }
+
         const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id)
+        const appointmentData = await appointmentModel.findById(orderInfo.receipt)
+
+        if (!appointmentData || appointmentData.userId !== userId) {
+            return res.json({success:false,message:'Appointment not found'})
+        }
 
        
         if (orderInfo.status === 'paid') {
@@ -289,7 +327,7 @@ const verifyRazorpay = async(req,res)=>{
 
 
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
         res.json({success:false,message:error.message})
     }
 }

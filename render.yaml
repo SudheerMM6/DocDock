@@ -1,0 +1,38 @@
+# Render Blueprint for DocDock Backend
+# Deploy this to Render as a Blueprint or manually configure as Web Service
+
+services:
+  - type: web
+    name: docdock-backend
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false  # Set in Render dashboard
+      - key: JWT_SECRET
+        sync: false  # Set in Render dashboard
+      - key: ADMIN_EMAIL
+        sync: false  # Set in Render dashboard
+      - key: ADMIN_PASSWORD
+        sync: false  # Set in Render dashboard
+      - key: CLOUDINARY_NAME
+        sync: false  # Set in Render dashboard
+      - key: CLOUDINARY_API_KEY
+        sync: false  # Set in Render dashboard
+      - key: CLOUDINARY_SECRET_KEY
+        sync: false  # Set in Render dashboard
+      - key: KEY_ID
+        sync: false  # Set in Render dashboard (Razorpay Key ID)
+      - key: KEY_SECRET
+        sync: false  # Set in Render dashboard (Razorpay Key Secret)
+      - key: CURRENCY
+        value: INR
+      - key: CORS_ORIGIN
+        sync: false  # Set to Vercel frontend/admin URLs after deployment
+    healthCheckPath: /health
+    autoDeploy: true

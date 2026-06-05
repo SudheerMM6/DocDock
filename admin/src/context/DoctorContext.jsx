@@ -3,11 +3,14 @@ import { createContext } from "react";
 import axios from 'axios'
 import {toast} from 'react-toastify'
 
+/* eslint-disable react-refresh/only-export-components */
 export const DoctorContext = createContext()
 
 const DoctorContextProvider = (props)=>{
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL
+    const backendUrl =
+      import.meta.env.VITE_API_URL ||
+      (import.meta.env.DEV ? "http://localhost:4000" : "")
     const [dToken,setDToken] = useState(localStorage.getItem('dToken') ? localStorage.getItem('dToken'): '')
 
     const [appointments,setAppointments] = useState([])
@@ -24,8 +27,7 @@ const DoctorContextProvider = (props)=>{
             }
 
         } catch (error) {
-            console.log(error)
-            toast.error(error.message)
+            toast.error(error.response?.data?.message || error.message)
             
         }
     }
@@ -44,8 +46,7 @@ const completeAppointment = async(appointmentId)=>{
         }
 
     } catch (error) {
-        console.log(error)
-        toast.error(error.message)
+        toast.error(error.response?.data?.message || error.message)
     }
 
 }
@@ -64,13 +65,12 @@ const cancelAppointment = async(appointmentId)=>{
         }
 
     } catch (error) {
-        console.log(error)
-        toast.error(error.message)
+        toast.error(error.response?.data?.message || error.message)
     }
 
 }
 
-const getDashData = async(req,res)=>{
+const getDashData = async()=>{
     try {
 
         const {data} = await axios.get(backendUrl+'/api/doctor/dashboard',{headers:{dToken}})
@@ -81,8 +81,7 @@ const getDashData = async(req,res)=>{
         }
 
     } catch (error) {
-        console.log(error)
-        toast.error(error.message)
+        toast.error(error.response?.data?.message || error.message)
     }
 }
 
@@ -97,8 +96,7 @@ const getProfileData = async()=>{
 
         
     } catch (error) {
-        console.log(error)
-        toast.error(error.message)
+        toast.error(error.response?.data?.message || error.message)
     }
 }
     const value = {

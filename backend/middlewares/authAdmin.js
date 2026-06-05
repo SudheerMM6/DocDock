@@ -7,21 +7,20 @@ const authAdmin = async (req,res,next)=>{
         
         const {atoken} = req.headers
         if (!atoken) {
-            res.json({success:false,message:'Not authorized Login'})
+            return res.status(401).json({success:false,message:'Not authorized'})
         } 
 
         const token_decode = jwt.verify(atoken,process.env.JWT_SECRET)
 
-        if (token_decode != process.env.ADMIN_EMAIL + process.env.ADMIN_PASSWORD) {
+        if (token_decode.role !== 'admin') {
             
-            res.json({success:false,message:'Not authorized Login'})
+            return res.status(403).json({success:false,message:'Admin access required'})
         }
             next()
             
      } catch (error) {
         
-        console.log(error);
-        res.json({success:false,message:error.message})
+        return res.status(401).json({success:false,message:'Not authorized'})
 
      }
 }

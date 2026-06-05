@@ -3,14 +3,20 @@ import {AppContext} from '../context/AppContext'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import {useNavigate} from 'react-router-dom'
+import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '../components/layout/PageHeader'
+import { Container } from '../components/layout/Container'
+import { Section } from '../components/layout/Section'
+import { Divider } from '../components/layout/Divider'
+import { Button } from '../components/ui/button'
 
 const MyAppointments = () => {
 
 const {backendUrl,token,getDoctorsData} = useContext(AppContext)
 
 const [appointments,setAppointments] = useState([])
+const [isPaying,setIsPaying] = useState(false)
 const month = ["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-
 
 const slotDateFormat = (slotDate)=>{
   const dateArray = slotDate.split('_')
@@ -27,7 +33,6 @@ const getUserAppointments = async()=>{
     }
 
   } catch (error) {
-    console.log(error)
     toast.error(error.message)
     
   }
@@ -49,13 +54,37 @@ const cancelAppointment = async (appointmentId) =>{
     
 
   } catch (error) {
-    console.log(error)
     toast.error(error.message)
   }
 
 }
 
-const initPay = (order)=>{
+const loadRazorpayScript = () =>
+  new Promise((resolve, reject) => {
+    if (window.Razorpay) {
+      resolve(true)
+      return
+    }
+
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.onload = () => resolve(true)
+    script.onerror = () => reject(new Error('Unable to load Razorpay checkout'))
+    document.body.appendChild(script)
+  })
+
+const initPay = async (order)=>{
+  if (!import.meta.env.VITE_KEY_ID) {
+    toast.error('Payment key is not configured')
+    return
+  }
+
+  try {
+    await loadRazorpayScript()
+  } catch (error) {
+    toast.error(error.message)
+    return
+  }
 
   const options={
     key: import.meta.env.VITE_KEY_ID,
@@ -66,19 +95,18 @@ const initPay = (order)=>{
     order_id:order.id,
     receipt:order.receipt,
     handler:async(response)=>{
-      console.log(response)
-      
       try {
 
         const {data} = await axios.post(backendUrl+'/api/user/verifyRazorpay',response,{headers:{token}})
         if (data.success) {
+          toast.success(data.message)
           getUserAppointments()
           navigate('/my-appointments')
-
+        } else {
+          toast.error(data.message)
         }
         
       } catch (error) {
-        console.log(error)
         toast.error(error.message)
       }
 
@@ -93,16 +121,20 @@ const initPay = (order)=>{
 const appointmentRazorpay = async(appointmentId)=>{
 
   try {
+    setIsPaying(true)
 
     const {data} = await axios.post(backendUrl+'/api/user/payment-razorpay',{appointmentId},{headers:{token}})
 
     if (data.success) {
       initPay(data.order)
+    } else {
+      toast.error(data.message)
     }
     
   } catch (error) {
-    console.log(error)
     toast.error(error.message)
+  } finally {
+    setIsPaying(false)
   }
 
 }
@@ -111,41 +143,116 @@ useEffect(()=>{
   if (token) {
     getUserAppointments()
   }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 },[token])
 
   return (
-    <div>
-        <p className='pb-3 mt-12 font-medium text-zinc-700 border-b'>My Appointments</p>
-        <div>
-          {
-            appointments.map((item,index)=>(
-              <div className='grid grid-cols-[1fr_2fr] gap-4 sm:flex sm:gap-6 py-2 border-b' key={index}>
-                <div>
-                  <img className='w-32 bg-indigo-50' src={item.docData.image} alt="" />
-                </div>
+    <div className="min-h-screen bg-[var(--color-canvas-white)]">
+      <PageHeader title="My appointments" />
 
-                <div className='flex-1 text-sm text-zinc-600'>
-                  <p className='text-neutral-800 font-semibold'>{item.docData.name}</p>
-                  <p>{item.docData.speciality}</p>
-                  <p className='text-zinc-700 font-medium mt-1'>Address:</p>
-                  <p className='text-xs'>{item.docData.address.line1}</p>
-                  <p className='text-xs'>{item.docData.address.line2}</p>
-                  <p className='text-xs mt-1'><span className='text-sm text-neutral-700 font-medium'>Date & Time:</span>{slotDateFormat(item.slotDate)} | {item.slotTime} </p>
-                </div>
+      <Section size="md">
+        <Container>
+          {/* Not Logged In State */}
+          {!token && (
+            <div className='text-center py-16 bg-[var(--surface)] rounded-card border border-[var(--border)]'>
+              <p className='text-[var(--ink-secondary)]'>Please login to view your appointments</p>
+              <Button onClick={() => navigate('/login')} className="mt-4">Login</Button>
+            </div>
+          )}
 
-                <div></div>
-                <div className='flex flex-col gap-2 justify-end'>
-                {!item.cancelled && item.payment && !item.isCompleted && <button className='sm:min-w-48 py-2 border rounded text-stone-500 bg-indigo-50'>Paid</button> }
-                {!item.cancelled && !item.payment && !item.isCompleted && <button onClick={()=>appointmentRazorpay(item._id)} className='text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-primary hover:text-white transition-all duration-300'>Pay Online</button> }  
-                {!item.cancelled && !item.isCompleted && <button onClick={()=>cancelAppointment(item._id)} className='text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-red-600 hover:text-white transition-all duration-300'>Cancel Appointment</button> }  
-                {item.cancelled && !item.isCompleted && <button className='sm:min-w-48 py-2 border border-red-500 rounded text-red-500'>Appointment cancelled</button> }
-                {item.isCompleted && <button className='sm:min-w-48 py-2 border border-green-500 rounded text-green-500'>Completed</button>}
-                </div>
+          {/* Empty State - No Appointments */}
+          {token && appointments.length === 0 && (
+            <div className='text-center py-16 bg-[var(--surface)] rounded-card border border-[var(--border)]'>
+              <p className='text-[var(--ink)] font-medium text-lg'>No appointments yet</p>
+              <p className='text-[var(--ink-secondary)] mt-2 text-sm'>Book your first appointment with a doctor</p>
+              <Button onClick={() => navigate('/doctors')} className="mt-5">Browse Doctors</Button>
+            </div>
+          )}
 
-              </div>
-            ))
-          }
-        </div>
+          {/* Appointments List - Ledger Style */}
+          {token && appointments.length > 0 && (
+            <div className="border border-[var(--border)] rounded-card overflow-hidden">
+              {appointments.map((item, index) => (
+                <div key={index}>
+                  <div className="p-6 bg-[var(--color-canvas-white)]">
+                    <div className="flex flex-col sm:flex-row gap-6">
+                      {/* Doctor Image */}
+                      <img
+                        className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-card bg-[var(--surface)]"
+                        src={item.docData.image}
+                        alt={item.docData.name}
+                      />
+
+                      {/* Details */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                          <div>
+                            <h3 className="font-semibold text-[var(--ink)]">{item.docData.name}</h3>
+                            <p className="text-sm text-[var(--ink-secondary)]">{item.docData.speciality}</p>
+                          </div>
+
+                          {/* Status Badge */}
+                          <div className="flex-shrink-0">
+                            {!item.cancelled && item.payment && !item.isCompleted && (
+                              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Paid</Badge>
+                            )}
+                            {item.cancelled && !item.isCompleted && (
+                              <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Cancelled</Badge>
+                            )}
+                            {item.isCompleted && (
+                              <Badge variant="outline" className="bg-[var(--surface)] text-[var(--ink-secondary)]">Completed</Badge>
+                            )}
+                            {!item.cancelled && !item.payment && !item.isCompleted && (
+                              <Badge variant="outline" className="bg-[var(--surface)] text-[var(--ink-secondary)]">Pending payment</Badge>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Appointment Details */}
+                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <p className="font-mono text-xs text-[var(--ink-secondary)] uppercase tracking-wider">Date & Time</p>
+                            <p className="text-sm font-medium text-[var(--ink)]">{slotDateFormat(item.slotDate)} · {item.slotTime}</p>
+                          </div>
+                          <div>
+                            <p className="font-mono text-xs text-[var(--ink-secondary)] uppercase tracking-wider">Location</p>
+                            <p className="text-sm text-[var(--ink-secondary)] truncate">{item.docData.address.line1}</p>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {!item.cancelled && !item.payment && !item.isCompleted && (
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              disabled={isPaying}
+                              onClick={() => appointmentRazorpay(item._id)}
+                            >
+                              {isPaying ? 'Opening payment...' : 'Pay now'}
+                            </Button>
+                          )}
+                          {!item.cancelled && !item.isCompleted && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => cancelAppointment(item._id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              Cancel
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {index < appointments.length - 1 && <Divider />}
+                </div>
+              ))}
+            </div>
+          )}
+        </Container>
+      </Section>
     </div>
   )
 }

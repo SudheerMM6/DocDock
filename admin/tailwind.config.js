@@ -7,7 +7,22 @@ export default {
   theme: {
     extend: {
       colors:{
-        'primary':'#5F6FFF'
+        'primary':'var(--accent)'
+      },
+      fontFamily: {
+        sans: ['var(--font-sans)'],
+        mono: ['var(--font-mono)'],
+      },
+      borderRadius: {
+        'card': 'var(--radius-cards)',
+        'feature': 'var(--radius-medium)',
+        'pill': 'var(--radius-buttons)',
+        'nav': 'var(--radius-navigation)',
+      },
+      boxShadow: {
+        'card': 'none',
+        'soft': 'none',
+        'lg': '0 0 #0000',
       }
     },
   },

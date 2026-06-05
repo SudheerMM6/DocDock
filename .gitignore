@@ -2,6 +2,7 @@
 .env
 *.env
 *.enc
+*.db
 
 # Ignore node_modules and logs
 node_modules/

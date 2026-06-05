@@ -3,6 +3,9 @@ import { assets } from '../../assets/assets'
 import { AdminContext } from '../../context/AdminContext'
 import { toast } from 'react-toastify'
 import axios from 'axios'
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card'
+import { Input } from '../../components/ui/Input'
+import { Button } from '../../components/ui/Button'
 
 const AddDoctor = () => {
 
@@ -42,12 +45,6 @@ const AddDoctor = () => {
             formData.append('degree',degree)
             formData.append('address',JSON.stringify({line1:address1,line2:address2})) 
             
-            // console log form data
-            formData.forEach((value,key)=>{
-                console.log(`${key} : ${value}`);
-                
-            })
-
             const {data} = await axios.post(backendUrl + '/api/admin/add-doctor',formData,{headers:{aToken}})
 
             if (data.success) {
@@ -69,99 +66,104 @@ const AddDoctor = () => {
             }
 
         } catch (error) {
-            toast.error(error.message)
-            console.log(error)
+            toast.error(error.response?.data?.message || error.message)
             
         }
     }
 
   return (
-    <form onSubmit={onSubmitHandler} className='m-5 w-full'>
-        <p className='mb-3 text-lg font-medium'>Add Doctor</p>
-        <div className='bg-white px-8 py-8 border rounded w-full max-w-4xl max-h-[80vh] overflow-y-scroll'>
-            <div className='flex items-center gap-4 mb-8 text-gray-500 '>
-                <label htmlFor="doc-img">
-                    <img className='w-16 bg-gray-100 rounded-full cursor-pointer' src={docImg ? URL.createObjectURL(docImg)  : assets.upload_area} alt="" />
-                </label>
-                <input onChange={(e)=>setDocImg(e.target.files[0])} type="file" id="doc-img" hidden/>
-                <p>Upload Doctor <br /> Picture</p>
-            </div>
-
-            <div className='flex flex-col lg:flex-row items-start gap-10 text-gray-600'>
-                <div className='w-full lg:flex-1 flex flex-col gap-4 '>
-
-                    <div className='flex-1 flex flex-col gap-1'>
-                        <p>Doctor name</p>
-                        <input onChange={(e)=>setName(e.target.value)} value={name} className='border rounded px-3 py-2' type="text" placeholder='name' required/>
-                    </div>
-                    <div className='flex-1 flex flex-col gap-1'>
-                        <p>Doctor Email</p>
-                        <input onChange={(e)=>setEmail(e.target.value)} value={email} className='border rounded px-3 py-2' type="email" placeholder='email' required/>
-                    </div>
-                    <div className='flex-1 flex flex-col gap-1'>
-                        <p>Doctor Password</p>
-                        <input onChange={(e)=>setPassword(e.target.value)} value={password} className='border rounded px-3 py-2' type="password" placeholder='password' required/>
-                    </div>
-                    <div className='flex-1 flex flex-col gap-1'>
-                        <p>Experience</p>
-                        <select onChange={(e)=>setExperience(e.target.value)} value={experience} className='border rounded px-3 py-2'>
-                            <option value="1 Year">1 Year</option>
-                            <option value="2 Year">2 Year</option>
-                            <option value="3 Year">3 Year</option>
-                            <option value="4 Year">4 Year</option>
-                            <option value="5 Year">5 Year</option>
-                            <option value="6 Year">6 Year</option>
-                            <option value="7 Year">7 Year</option>
-                            <option value="8 Year">8 Year</option>
-                            <option value="9 Year">9 Year</option>
-                            <option value="10 Year">10 Year</option>
-                        </select>
-                    </div>
-
-                    <div className='flex-1 flex flex-col gap-1'>
-                        <p>Fees</p>
-                        <input onChange={(e)=>setFees(e.target.value)} value={fees} className='border rounded px-3 py-2' type="number" placeholder='fees' required/>
-                    </div>
-
-                </div>
-
-                <div className='w-full lg:flex-1 flex flex-col gap-4'>
-                    <div className='flex-1 flex flex-col gap-1'>
-                        <p>Speciality</p>
-                        <select onChange={(e)=>setSpeciality(e.target.value)} value={speciality} className='border rounded px-3 py-2' >
-                            <option value="General physician">General physician</option>
-                            <option value="Gynecologist">Gynecologist</option>
-                            <option value="Dermatologist">Dermatologist</option>
-                            <option value="Pediatricians">Pediatricians</option>
-                            <option value="Neurologist">Neurologist</option>
-                            <option value="Gastroenterologist">Gastroenterologist</option>
-
-                        </select>
-                    </div>
-
-                    <div className='flex-1 flex flex-col gap-1'>
-                        <p>Education</p>
-                        <input onChange={(e)=>setDegree(e.target.value)} value={degree} className='border rounded px-3 py-2' type="text" placeholder='education' required/>
-                    </div>
-
-                    <div className='flex-1 flex flex-col gap-1'>
-                        <p>Address</p>
-                        <input onChange={(e)=>setAddress1(e.target.value)} value={address1} className='border rounded px-3 py-2' type="text" placeholder='address 1' required/>
-                        <input onChange={(e)=>setAddress2(e.target.value)} value={address2} className='border rounded px-3 py-2' type="text" placeholder='address 2' required/>
-                    </div>
-
-                </div>
-
-            </div>
-
+    <form onSubmit={onSubmitHandler} className='p-5 w-full'>
+      <Card className='w-full max-w-4xl max-h-[80vh] overflow-y-auto'>
+        <CardHeader>
+          <CardTitle className='text-xl font-bold text-[var(--ink)] tracking-[-0.02em]'>Add Doctor</CardTitle>
+          <p className='text-[var(--ink-secondary)] text-sm'>Create a new doctor profile</p>
+        </CardHeader>
+        <CardContent className='space-y-6'>
+          {/* Upload Image */}
+          <div className='flex items-center gap-4'>
+            <label htmlFor="doc-img" className='cursor-pointer'>
+              <img className='w-16 h-16 bg-[var(--surface)] rounded-full object-cover border border-[var(--border)]' src={docImg ? URL.createObjectURL(docImg) : assets.upload_area} alt="" />
+            </label>
+            <input onChange={(e) => setDocImg(e.target.files[0])} type="file" id="doc-img" hidden />
             <div>
-                <p className='mt-4 mb-2'>About Doctor</p>
-                <textarea onChange={(e)=>setAbout(e.target.value)} value={about} className='w-full px-4 pt-2 border rounded' placeholder='write about doctor' rows={5} required/>
+              <p className='text-sm font-medium text-[var(--ink)]'>Upload Doctor Picture</p>
+              <p className='text-xs text-[var(--ink-secondary)]'>Recommended: 400x400px</p>
+            </div>
+          </div>
+
+          {/* Form Grid */}
+          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+            {/* Left Column */}
+            <div className='space-y-4'>
+              <div className='space-y-1.5'>
+                <label className='text-sm font-medium text-[var(--ink)]'>Doctor name</label>
+                <Input onChange={(e) => setName(e.target.value)} value={name} type="text" placeholder='Dr. John Doe' required />
+              </div>
+              <div className='space-y-1.5'>
+                <label className='text-sm font-medium text-[var(--ink)]'>Doctor Email</label>
+                <Input onChange={(e) => setEmail(e.target.value)} value={email} type="email" placeholder='doctor@example.com' required />
+              </div>
+              <div className='space-y-1.5'>
+                <label className='text-sm font-medium text-[var(--ink)]'>Doctor Password</label>
+                <Input onChange={(e) => setPassword(e.target.value)} value={password} type="password" placeholder='********' required />
+              </div>
+              <div className='space-y-1.5'>
+                <label className='text-sm font-medium text-[var(--ink)]'>Experience</label>
+                <select onChange={(e) => setExperience(e.target.value)} value={experience} className='w-full h-10 px-3 border border-[var(--border)] rounded-feature bg-[var(--color-canvas-white)] text-[var(--ink)] focus:outline-none focus:border-[var(--ink)]'>
+                  <option value="1 Year">1 Year</option>
+                  <option value="2 Year">2 Year</option>
+                  <option value="3 Year">3 Year</option>
+                  <option value="4 Year">4 Year</option>
+                  <option value="5 Year">5 Year</option>
+                  <option value="6 Year">6 Year</option>
+                  <option value="7 Year">7 Year</option>
+                  <option value="8 Year">8 Year</option>
+                  <option value="9 Year">9 Year</option>
+                  <option value="10 Year">10 Year</option>
+                </select>
+              </div>
+              <div className='space-y-1.5'>
+                <label className='text-sm font-medium text-[var(--ink)]'>Fees</label>
+                <Input onChange={(e) => setFees(e.target.value)} value={fees} type="number" placeholder='500' required />
+              </div>
             </div>
 
-            <button type='submit' className='bg-primary px-10 py-3 mt-4 text-white rounded-full'>Add Doctor</button>
+            {/* Right Column */}
+            <div className='space-y-4'>
+              <div className='space-y-1.5'>
+                <label className='text-sm font-medium text-[var(--ink)]'>Speciality</label>
+                <select onChange={(e) => setSpeciality(e.target.value)} value={speciality} className='w-full h-10 px-3 border border-[var(--border)] rounded-feature bg-[var(--color-canvas-white)] text-[var(--ink)] focus:outline-none focus:border-[var(--ink)]'>
+                  <option value="General physician">General physician</option>
+                  <option value="Gynecologist">Gynecologist</option>
+                  <option value="Dermatologist">Dermatologist</option>
+                  <option value="Pediatricians">Pediatricians</option>
+                  <option value="Neurologist">Neurologist</option>
+                  <option value="Gastroenterologist">Gastroenterologist</option>
+                </select>
+              </div>
+              <div className='space-y-1.5'>
+                <label className='text-sm font-medium text-[var(--ink)]'>Education</label>
+                <Input onChange={(e) => setDegree(e.target.value)} value={degree} type="text" placeholder='MBBS, MD' required />
+              </div>
+              <div className='space-y-1.5'>
+                <label className='text-sm font-medium text-[var(--ink)]'>Address</label>
+                <Input onChange={(e) => setAddress1(e.target.value)} value={address1} type="text" placeholder='Line 1' required />
+                <Input onChange={(e) => setAddress2(e.target.value)} value={address2} type="text" placeholder='Line 2' required />
+              </div>
+            </div>
+          </div>
 
-        </div>
+          {/* About */}
+          <div className='space-y-1.5'>
+            <label className='text-sm font-medium text-[var(--ink)]'>About Doctor</label>
+            <textarea onChange={(e) => setAbout(e.target.value)} value={about} className='w-full px-3 py-2 border border-[var(--border)] rounded-feature bg-[var(--color-canvas-white)] text-[var(--ink)] focus:outline-none focus:border-[var(--ink)]' placeholder='Write about doctor experience and expertise...' rows={5} required />
+          </div>
+
+          <Button type='submit' variant="primary" size="lg">
+            Add Doctor
+          </Button>
+        </CardContent>
+      </Card>
     </form>
   )
 }
