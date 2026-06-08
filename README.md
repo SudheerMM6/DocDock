@@ -190,6 +190,8 @@ npm run check:all
 
 ## Deployment
 
+Full deployment steps are in `DEPLOY.md`.
+
 Backend on Render:
 
 - Root directory: `backend`

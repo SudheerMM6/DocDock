@@ -20,7 +20,7 @@ const log = (message, color = "reset") => {
   console.log(`${colors[color]}${message}${colors.reset}`);
 };
 
-const runCommand = (cmd, args, cwd) =>
+const runCommandOnce = (cmd, args, cwd) =>
   new Promise((resolve, reject) => {
     log(`[run] ${cmd} ${args.join(" ")} (${cwd})`, "blue");
 
@@ -40,6 +40,21 @@ const runCommand = (cmd, args, cwd) =>
 
     child.on("error", reject);
   });
+
+const runCommand = async (cmd, args, cwd) => {
+  const isAuditCommand = cmd === "npm" && args[0] === "run" && args[1] === "audit:prod";
+
+  try {
+    await runCommandOnce(cmd, args, cwd);
+  } catch (error) {
+    if (!isAuditCommand) {
+      throw error;
+    }
+
+    log("Production audit failed once. Retrying to avoid transient registry errors.", "yellow");
+    await runCommandOnce(cmd, args, cwd);
+  }
+};
 
 const checks = [
   {

@@ -5,6 +5,7 @@ services:
   - type: web
     name: docdock-backend
     runtime: node
+    rootDir: backend
     plan: free
     region: oregon
     buildCommand: npm install
