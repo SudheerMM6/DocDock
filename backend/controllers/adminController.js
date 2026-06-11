@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken'
 import appointmentModel from '../models/appointmentModel.js'
 import userModel from '../models/userModel.js'
 
+const fail = (res, status, message) => res.status(status).json({ success: false, message })
 
 // api for adding doctor
 const addDoctor = async(req,res)=>{
@@ -16,17 +17,21 @@ const addDoctor = async(req,res)=>{
 
         // checking for all data available to add doctor
         if (!name || !email || !password || !speciality || !degree || !experience || !about || !fees || !address) {
-            return res.json({success:false,message:'Missing Details'})
+            return fail(res, 400, 'Missing Details')
+        }
+
+        if (!imageFile) {
+            return fail(res, 400, 'Doctor image is required')
         }
         
         // validating email format
         if (!validator.isEmail(email)) {
-            return res.json({success:false,message:'Enter a valid Email'})
+            return fail(res, 400, 'Enter a valid Email')
         }
 
         // validating strong password
         if (password.length < 8 ) {
-            return res.json({success:false,message:'Enter a strong password'})
+            return fail(res, 400, 'Enter a strong password')
         }
 
         // hashing doctor password
@@ -36,6 +41,13 @@ const addDoctor = async(req,res)=>{
         // upload image to cloudinary
         const imageUpload = await cloudinary.uploader.upload(imageFile.path, {resource_type:"image"})
         const imageUrl = imageUpload.secure_url
+
+        let parsedAddress
+        try {
+            parsedAddress = JSON.parse(address)
+        } catch {
+            return fail(res, 400, 'Invalid address')
+        }
 
         const doctorData = {
             name,
@@ -47,7 +59,7 @@ const addDoctor = async(req,res)=>{
             experience,
             about,
             fees,
-            address:JSON.parse(address),
+            address:parsedAddress,
             date:Date.now() 
         }
 
@@ -59,7 +71,10 @@ const addDoctor = async(req,res)=>{
     } catch (error) {
         
         console.error(error.message);
-        res.json({success:false,message:error.message})
+        if (error.code === 11000) {
+            return fail(res, 409, 'Doctor email already registered')
+        }
+        fail(res, 500, error.message)
 
     }
 
@@ -70,19 +85,23 @@ const loginAdmin = async(req,res)=>{
     try {
 
         const {email,password} = req.body
+        if (!email || !password) {
+            return fail(res, 400, 'Missing credentials')
+        }
+
         if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
             
             const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '1d' })
             res.json({success:true,token})
 
         }else{
-            res.json({success:false,message:'Incorrect credentials'})
+            fail(res, 401, 'Incorrect credentials')
         }
         
     } catch (error) {
         
         console.error(error.message);
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
 
     }
 }
@@ -97,7 +116,7 @@ const allDoctors = async (req,res)=>{
 
     } catch (error) {
         console.error(error.message);
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 
 }
@@ -112,7 +131,7 @@ const appointmentsAdmin = async(req,res)=>{
 
     } catch (error) {
         console.error(error.message);
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 }
 
@@ -121,8 +140,15 @@ const appointmentCancel = async(req,res)=>{
     try {
         
         const {appointmentId} = req.body
+        if (!appointmentId) {
+            return fail(res, 400, 'Missing appointment id')
+        }
+
         const appointmentData = await appointmentModel.findById(appointmentId)
 
+        if (!appointmentData) {
+            return fail(res, 404, 'Appointment not found')
+        }
 
         await appointmentModel.findByIdAndUpdate(appointmentId,{cancelled:true})
 
@@ -131,9 +157,15 @@ const appointmentCancel = async(req,res)=>{
         const {docId,slotDate,slotTime} = appointmentData
 
         const doctorData = await doctorModel.findById(docId)
+        if (!doctorData) {
+            return res.json({success:true,message:'Appointment cancelled'})
+        }
+
         let slots_booked = doctorData.slots_booked
 
-        slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime)
+        if (Array.isArray(slots_booked[slotDate])) {
+            slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime)
+        }
 
         await doctorModel.findByIdAndUpdate(docId,{slots_booked})
 
@@ -141,7 +173,7 @@ const appointmentCancel = async(req,res)=>{
 
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 }
 
@@ -166,7 +198,7 @@ const adminDashboard = async(req,res)=>{
 
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 }
 

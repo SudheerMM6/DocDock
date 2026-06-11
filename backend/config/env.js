@@ -11,8 +11,12 @@ const REQUIRED_ENV_VARS = [
   "CURRENCY",
 ];
 
+const PRODUCTION_ENV_VARS = ["CORS_ORIGIN"];
+
 const getMissingEnvVars = () =>
-  REQUIRED_ENV_VARS.filter((key) => !process.env[key] || !String(process.env[key]).trim());
+  [...REQUIRED_ENV_VARS, ...(process.env.NODE_ENV === "production" ? PRODUCTION_ENV_VARS : [])].filter(
+    (key) => !process.env[key] || !String(process.env[key]).trim()
+  );
 
 const validateRequiredEnvVars = () => {
   const missing = getMissingEnvVars();
@@ -36,4 +40,4 @@ const getCorsOrigins = () => {
     .filter(Boolean);
 };
 
-export { REQUIRED_ENV_VARS, validateRequiredEnvVars, getCorsOrigins };
+export { REQUIRED_ENV_VARS, PRODUCTION_ENV_VARS, validateRequiredEnvVars, getCorsOrigins };

@@ -9,6 +9,8 @@ import appointmentModel from '../models/appointmentModel.js'
 import razorpay from 'razorpay'
 import { isValidRazorpaySignature } from '../utils/razorpaySignature.js'
 
+const fail = (res, status, message) => res.status(status).json({ success: false, message })
+
 //api to register
 const registerUser = async (req,res) =>{
     try {
@@ -17,13 +19,13 @@ const registerUser = async (req,res) =>{
 
         //validating credential
         if (!name || !email || !password) {
-            return res.json({success:false,message:"Missing Details"})
+            return fail(res, 400, "Missing Details")
         }
         if (!validator.isEmail(email)) {
-            return res.json({success:false,message:"Enter a valid Email"})
+            return fail(res, 400, "Enter a valid Email")
         }
         if (password.length < 8) {
-            return res.json({success:false,message:"Enter a strong Password"})
+            return fail(res, 400, "Enter a strong Password")
         }
 
         //hashing user password using bcrypt
@@ -45,7 +47,10 @@ const registerUser = async (req,res) =>{
 
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        if (error.code === 11000) {
+            return fail(res, 409, "Email already registered")
+        }
+        fail(res, 500, error.message)
     }
 }
 
@@ -57,7 +62,7 @@ const loginUser = async (req,res)=>{
         const user = await userModel.findOne({email})
 
         if (!user) {
-          return res.json({success:false,message:'User Not Exist'})
+          return fail(res, 401, 'User Not Exist')
         }
 
         const isMatch = await bcrypt.compare(password,user.password)
@@ -66,12 +71,12 @@ const loginUser = async (req,res)=>{
             const token = jwt.sign({id:user._id},process.env.JWT_SECRET)
             res.json({success:true,token})
         }else{
-            res.json({success:false,message:"Invalid Credentials"})
+            fail(res, 401, "Invalid Credentials")
         }
 
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 }
 
@@ -81,14 +86,17 @@ const getProfile = async (req,res)=>{
 
     try {
         
-        const {userId} = req.body
+        const userId = req.userId
         const userData = await userModel.findById(userId).select('-password')
+        if (!userData) {
+            return fail(res, 404, 'User not found')
+        }
 
         res.json({success:true,userData})
 
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 
 }
@@ -96,14 +104,25 @@ const getProfile = async (req,res)=>{
 //api to update profile
 const updateProfile = async (req,res)=>{
     try {
-        const {userId,name,phone,address,dob,gender} = req.body
+        const userId = req.userId
+        const {name,phone,address,dob,gender} = req.body
         const imageFile = req.file
 
         if (!name || !phone || !gender || !dob  ) {
-            return res.json({success:false,message:"Data Missing"})
+            return fail(res, 400, "Data Missing")
         }
 
-        await userModel.findByIdAndUpdate(userId,{name,phone,address:JSON.parse(address),dob,gender})
+        let parsedAddress
+        try {
+            parsedAddress = JSON.parse(address)
+        } catch {
+            return fail(res, 400, "Invalid address")
+        }
+
+        const updatedUser = await userModel.findByIdAndUpdate(userId,{name,phone,address:parsedAddress,dob,gender})
+        if (!updatedUser) {
+            return fail(res, 404, 'User not found')
+        }
 
         if (imageFile) {
             const imageUpload = await cloudinary.uploader.upload(imageFile.path,{resource_type:'image'})
@@ -119,7 +138,7 @@ const updateProfile = async (req,res)=>{
 
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 }
 
@@ -127,15 +146,20 @@ const updateProfile = async (req,res)=>{
 const bookAppointment = async (req,res)=>{
     try {
         
-        const {userId,docId,slotDate,slotTime} = req.body
+        const userId = req.userId
+        const {docId,slotDate,slotTime} = req.body
+
+        if (!docId || !slotDate || !slotTime) {
+            return fail(res, 400, 'Missing appointment details')
+        }
 
         const docData = await doctorModel.findById(docId).select('-password')
         if (!docData) {
-            return res.json({success:false,message:'Doctor not found'})
+            return fail(res, 404, 'Doctor not found')
         }
 
         if (!docData.available) {
-            return res.json({success:false,message:'Doctor not Available'})
+            return fail(res, 409, 'Doctor not Available')
         }
 
         let slots_booked = docData.slots_booked
@@ -144,7 +168,7 @@ const bookAppointment = async (req,res)=>{
         if (slots_booked[slotDate]) {
             if (slots_booked[slotDate].includes(slotTime)) {
 
-                return res.json({success:false,message:'Slot not Available'}) 
+                return fail(res, 409, 'Slot not Available')
             }else{
                 slots_booked[slotDate].push(slotTime)
             }
@@ -155,6 +179,9 @@ const bookAppointment = async (req,res)=>{
         }
 
         const userData = await userModel.findById(userId).select('-password')
+        if (!userData) {
+            return fail(res, 404, 'User not found')
+        }
 
         delete docData.slots_booked
 
@@ -183,7 +210,7 @@ const bookAppointment = async (req,res)=>{
 
         if (!updatedDoctor) {
             await appointmentModel.findByIdAndDelete(newAppointment._id)
-            return res.json({success:false,message:'Slot not Available'})
+            return fail(res, 409, 'Slot not Available')
         }
 
 
@@ -191,7 +218,7 @@ const bookAppointment = async (req,res)=>{
 
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 }
 
@@ -200,14 +227,14 @@ const bookAppointment = async (req,res)=>{
 const listAppointment = async(req,res)=>{
     try {
         
-        const {userId} = req.body
+        const userId = req.userId
         const appointments = await appointmentModel.find({userId})
 
         res.json({success:true,appointments})
 
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 }
 
@@ -215,15 +242,20 @@ const listAppointment = async(req,res)=>{
 const cancelAppointment = async(req,res)=>{
     try {
         
-        const {userId,appointmentId} = req.body
+        const userId = req.userId
+        const {appointmentId} = req.body
+        if (!appointmentId) {
+            return fail(res, 400, 'Missing appointment id')
+        }
+
         const appointmentData = await appointmentModel.findById(appointmentId)
         if (!appointmentData) {
-            return res.json({success:false,message:'Appointment not found'})
+            return fail(res, 404, 'Appointment not found')
         }
 
         //verify appointment user
         if (appointmentData.userId !== userId ) {
-            return res.json({success:false,message:'Unauthorized Action'})
+            return fail(res, 403, 'Unauthorized Action')
         }
 
         await appointmentModel.findByIdAndUpdate(appointmentId,{cancelled:true})
@@ -233,9 +265,15 @@ const cancelAppointment = async(req,res)=>{
         const {docId,slotDate,slotTime} = appointmentData
 
         const doctorData = await doctorModel.findById(docId)
+        if (!doctorData) {
+            return res.json({success:true,message:'Appointment cancelled'})
+        }
+
         let slots_booked = doctorData.slots_booked
 
-        slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime)
+        if (Array.isArray(slots_booked[slotDate])) {
+            slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime)
+        }
 
         await doctorModel.findByIdAndUpdate(docId,{slots_booked})
 
@@ -243,7 +281,7 @@ const cancelAppointment = async(req,res)=>{
 
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 }
 
@@ -258,14 +296,22 @@ const paymentRazorpay = async(req,res)=>{
     try {
 
         const {appointmentId} = req.body
+        const userId = req.userId
+
+        if (!appointmentId) {
+            return fail(res, 400, "Missing appointment id")
+        }
 
         const appointmentData = await appointmentModel.findById(appointmentId)
     
-        if (!appointmentData || appointmentData.cancelled) {
-            return res.json({success:false,message:"Appointment cancelled or not found"})
+        if (!appointmentData) {
+            return fail(res, 404, "Appointment cancelled or not found")
         }
-        if (appointmentData.userId !== req.body.userId) {
-            return res.json({success:false,message:"Unauthorized Action"})
+        if (appointmentData.cancelled) {
+            return fail(res, 409, "Appointment cancelled or not found")
+        }
+        if (appointmentData.userId !== userId) {
+            return fail(res, 403, "Unauthorized Action")
         }
     
         // creating options for razorpay payment
@@ -281,7 +327,7 @@ const paymentRazorpay = async(req,res)=>{
         
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 
    
@@ -293,9 +339,10 @@ const paymentRazorpay = async(req,res)=>{
 const verifyRazorpay = async(req,res)=>{
     try {
         
-        const {userId, razorpay_order_id, razorpay_payment_id, razorpay_signature} = req.body
+        const userId = req.userId
+        const {razorpay_order_id, razorpay_payment_id, razorpay_signature} = req.body
         if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-            return res.json({success:false,message:'Missing payment verification details'})
+            return fail(res, 400, 'Missing payment verification details')
         }
 
         const isPaymentSignatureValid = isValidRazorpaySignature({
@@ -306,14 +353,14 @@ const verifyRazorpay = async(req,res)=>{
         })
 
         if (!isPaymentSignatureValid) {
-            return res.json({success:false,message:'Payment verification failed'})
+            return fail(res, 400, 'Payment verification failed')
         }
 
         const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id)
         const appointmentData = await appointmentModel.findById(orderInfo.receipt)
 
         if (!appointmentData || appointmentData.userId !== userId) {
-            return res.json({success:false,message:'Appointment not found'})
+            return fail(res, 404, 'Appointment not found')
         }
 
        
@@ -321,14 +368,14 @@ const verifyRazorpay = async(req,res)=>{
             await appointmentModel.findByIdAndUpdate(orderInfo.receipt,{payment:true})
             res.json({success:true,message:'Payment Successful'})
         }else{
-            res.json({success:false,message:'Payment Failed'})
+            fail(res, 400, 'Payment Failed')
         }
         
 
 
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 }
 

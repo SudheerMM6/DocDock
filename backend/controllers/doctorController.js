@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import appointmentModel from "../models/appointmentModel.js"
 
+const fail = (res, status, message) => res.status(status).json({ success: false, message })
 
 const changeAvailability = async(req,res)=>{
 
@@ -11,12 +12,15 @@ const changeAvailability = async(req,res)=>{
         const {docId} = req.body
 
         const docData = await doctorModel.findById(docId)
+        if (!docData) {
+            return fail(res, 404, 'Doctor not found')
+        }
         await doctorModel.findByIdAndUpdate(docId,{available:!docData.available})
         res.json({success:true,message:'Availability Changed'})
         
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 
 }
@@ -28,7 +32,7 @@ const doctorList = async (req,res)=>{
         res.json({success:true,doctors})
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 }
 
@@ -38,10 +42,14 @@ const loginDoctor = async(req,res)=>{
     try {
 
         const {email,password} = req.body
+        if (!email || !password) {
+            return fail(res, 400, 'Missing credentials')
+        }
+
         const doctor = await doctorModel.findOne({email})
 
         if (!doctor) {
-            return res.json({success:false,message:'Invalid Credentials'})
+            return fail(res, 401, 'Invalid Credentials')
         }
 
         const isMatch = await bcrypt.compare(password,doctor.password)
@@ -51,12 +59,12 @@ const loginDoctor = async(req,res)=>{
 
             res.json({success:true,token})
         }else{
-            res.json({success:false,message:'Invalid Credentials'})
+            fail(res, 401, 'Invalid Credentials')
         }
         
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 
 }
@@ -66,14 +74,14 @@ const appointmentsDoctor = async(req,res)=>{
 
     try {
 
-        const {docId} = req.body
+        const docId = req.doctorId
         const appointments = await appointmentModel.find({docId})
 
         res.json({success:true,appointments})
         
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 
 }
@@ -82,23 +90,32 @@ const appointmentsDoctor = async(req,res)=>{
 const appointmentComplete = async(req,res)=>{
     try {
 
-        const {docId,appointmentId} = req.body
+        const docId = req.doctorId
+        const {appointmentId} = req.body
+        if (!appointmentId) {
+            return fail(res, 400, 'Missing appointment id')
+        }
+
         const appointmentData = await appointmentModel.findById(appointmentId)
 
-        if (appointmentData && appointmentData.docId === docId) {
+        if (!appointmentData) {
+            return fail(res, 404, 'Appointment not found')
+        }
+
+        if (appointmentData.docId === docId) {
 
             await appointmentModel.findByIdAndUpdate(appointmentId,{isCompleted:true})
 
             return res.json({success:true,message:'Appointment Completed'})
 
         }else{
-            return res.json({success:false,message:'Mark Failed'})
+            return fail(res, 403, 'Mark Failed')
         }
 
         
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 }
 
@@ -107,23 +124,32 @@ const appointmentComplete = async(req,res)=>{
 const appointmentCancel = async(req,res)=>{
     try {
 
-        const {docId,appointmentId} = req.body
+        const docId = req.doctorId
+        const {appointmentId} = req.body
+        if (!appointmentId) {
+            return fail(res, 400, 'Missing appointment id')
+        }
+
         const appointmentData = await appointmentModel.findById(appointmentId)
 
-        if (appointmentData && appointmentData.docId === docId) {
+        if (!appointmentData) {
+            return fail(res, 404, 'Appointment not found')
+        }
+
+        if (appointmentData.docId === docId) {
 
             await appointmentModel.findByIdAndUpdate(appointmentId,{cancelled:true})
 
             return res.json({success:true,message:'Appointment Cancelled'})
 
         }else{
-            return res.json({success:false,message:'Cancellation Failed'})
+            return fail(res, 403, 'Cancellation Failed')
         }
 
         
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 }
 
@@ -133,7 +159,7 @@ const doctorDashboard = async(req,res)=>{
 
     try {
 
-        const {docId} = req.body
+        const docId = req.doctorId
 
         const appointments = await appointmentModel.find({docId})
 
@@ -163,7 +189,7 @@ const doctorDashboard = async(req,res)=>{
 
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 
 }
@@ -172,14 +198,17 @@ const doctorDashboard = async(req,res)=>{
 const doctorProfile = async(req,res)=>{
     try {
 
-        const {docId} = req.body
+        const docId = req.doctorId
         const profileData = await doctorModel.findById(docId).select('-password')
+        if (!profileData) {
+            return fail(res, 404, 'Doctor not found')
+        }
         res.json({success:true,profileData})
         
         
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 }
 
@@ -187,15 +216,19 @@ const doctorProfile = async(req,res)=>{
 const updateDoctorProfile = async(req,res)=>{
     try {
 
-        const { docId,fees,address,available } = req.body
+        const docId = req.doctorId
+        const { fees,address,available } = req.body
 
-        await doctorModel.findByIdAndUpdate(docId,{fees,address,available})
+        const updatedDoctor = await doctorModel.findByIdAndUpdate(docId,{fees,address,available})
+        if (!updatedDoctor) {
+            return fail(res, 404, 'Doctor not found')
+        }
 
         res.json({success:true,message:"Profile Updated Successfully"})
         
     } catch (error) {
         console.error(error.message)
-        res.json({success:false,message:error.message})
+        fail(res, 500, error.message)
     }
 }
 

@@ -11,7 +11,7 @@ const corsOrigins = getCorsOrigins();
 const corsOptions = {
   origin(origin, callback) {
     if (!origin) return callback(null, true);
-    if (corsOrigins.length === 0 || corsOrigins.includes(origin)) {
+    if ((process.env.NODE_ENV !== "production" && corsOrigins.length === 0) || corsOrigins.includes(origin)) {
       return callback(null, true);
     }
     return callback(new Error(`CORS blocked for origin: ${origin}`));
