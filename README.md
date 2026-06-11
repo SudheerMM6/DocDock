@@ -87,6 +87,7 @@ Backend:
 
 ```env
 PORT=4000
+NODE_ENV=development
 MONGO_URI=mongodb+srv://<username>:<password>@<cluster-url>
 JWT_SECRET=replace_with_a_secure_random_string_min_32_chars
 ADMIN_EMAIL=admin@example.com
